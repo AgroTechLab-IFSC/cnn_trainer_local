@@ -1,0 +1,14 @@
+cnn_local:
+  cpu_used: 4                                 # Number of CPUs to use
+  train_path: "./data/summarized/train/"      # Path to training data
+  test_path: "./data/summarized/test/"        # Path to testing data
+  val_path: "./data/summarized/validation/"   # Path to validation data
+  models_path: "./models/"                    # Path to save models
+  transforms_height: 224                      # Height of the image
+  transforms_width: 224                       # Width of the image
+  replications: 5                             # Number of models replications
+  batch_size: 8                               # Number of samples per batch to be loaded
+  model_names: ["Alexnet"]                    # Model names supported (Alexnet, MobilenetV3Large, VGG11)                           
+  epochs: [5, 10, 20]                         # Number of epochs                         
+  learning_rates: [0.001, 0.0001, 0.00001]    # Learning rates    
+  weight_decays: [0, 0.001]                   # Weight decays
