@@ -1,16 +1,3 @@
-## @file cnn.py
-#  @author Wilson Castello Branco Neto (<mailto:wilson.castello@ifsc.edu.br>) / Robson Costa (<mailto:robson.costa@ifsc.edu.br>)
-#  @brief CNN class.
-#  @version 0.1.0
-#  @since 06/12/2024
-#  @date 09/12/2024
-#  @copyright Copyright &copy; since 2024 <a href="https://agrotechlab.lages.ifsc.edu.br" target="_blank">AgroTechLab</a>.\n
-#  ![LICENSE license](../figs/license.png)<br>
-#  Licensed under the CC BY-NC-SA (<i>Creative Commons Attribution-NonCommercial-ShareAlike</i>) 4.0 International Unported License (the <em>"License"</em>). You may not
-#  use this file except in compliance with the License. You may obtain a copy of the License <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode" target="_blank">here</a>.
-#  Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an <em>"as is" basis, 
-#  without warranties or  conditions of any kind</em>, either express or implied. See the License for the specific language governing permissions 
-#  and limitations under the License.
 import time
 import numpy as np
 import torch
@@ -18,38 +5,51 @@ from torch import nn, optim
 from torch.utils import data
 from torchvision import models
 
-## CNN class.
-#  @brief Train CCN models.
 class CNN:
-    ## @fn __init__
-    #  @brief The CNN class initializer
-    #  @param train_data Training data
-    #  @param validation_data Validation data
-    #  @param test_data Test data
-    #  @param batch_size Batch size
+    """CNN Trainer class.
+    
+    This class is responsible for training a CNN model.
+
+    Parameters:
+        train_data (torchvision.datasets.ImageFolder): Training data.
+        validation_data (torchvision.datasets.ImageFolder): Validation data.
+        test_data (torchvision.datasets.ImageFolder): Test data.
+        batch_size (int): Batch size.
+    """
+    
     def __init__(self, train_data, validation_data, test_data, batch_size):
+        """The CNN Trainer class constructor."""
         
-        ## Train data loader
+        # Train data loader
         self.train_loader = data.DataLoader(train_data, batch_size=batch_size, shuffle=True)
 
-        ## Validation data loader
+        # Validation data loader
         self.validation_loader = data.DataLoader(validation_data, batch_size=batch_size, shuffle=False)
         
-        ## Test data loader
+        # Test data loader
         self.test_loader = data.DataLoader(test_data, batch_size=batch_size, shuffle=False)
         
-        ## Trainer device type
+        # Trainer device type
         self.device = torch.device("cpu")
 
-    ## @fn create_and_train_cnn
-    #  @brief Create and train a CNN model
-    #  @param model_name Model name
-    #  @param num_epochs Number of epochs
-    #  @param learning_rate Learning rate
-    #  @param weight_decay Weight decay
-    #  @param replications Number of replications
-    #  @return Result name, average accuracy, maximum accuracy, iteration of maximum accuracy, duration
+
     def create_and_train_cnn(self, model_name, num_epochs, learning_rate, weight_decay, replications):
+        """Create and train a CNN model.
+        
+        Parameters:
+            model_name (str): Model name to be trained.
+            num_epochs (int): Number of epochs to be trained.
+            learning_rate (float): Learning rate to be used at train.
+            weight_decay (float): Weight decay to be used at train.
+            replications (int): Number of replications used at each trained model.
+        
+        Returns:
+            (dict): A dict mapping keys to the:
+                * 'result_name': (str) Result name.
+                * 'acc_avg': (float) Average accuracy.
+                * 'iter_acc_max': (int) Iteration of maximum accuracy.
+                * 'duration': (float) Duration of training.
+        """
         begin = time.time()
         sum = 0
         acc_max = 0
@@ -69,11 +69,19 @@ class CNN:
         result_name = f"{model_name}-{num_epochs}-{learning_rate}-{weight_decay}"
         return result_name, acc_avg, iter_acc_max, duration
         
-    ## @fn create_model
-    #  @brief Create a model
-    #  @param model_name Model name
-    #  @return Model
+
     def create_model(self, model_name):
+        """Create a function to a CNN model to be trained.
+
+        Note:
+            At moment, the models available are: [VGG11, Alexnet, MobilenetV3Large].
+
+        Parameters:
+            model_name (str): CNN model name.
+        
+        Returns:
+            (function): Function to CNN model selected.
+        """
         if (model_name=='VGG11'):
             model = models.vgg11(weights='DEFAULT')  
             for param in model.parameters():
@@ -91,15 +99,20 @@ class CNN:
             for param in model.parameters():
                 param.requires_grad = False
             model.classifier[3] = nn.Linear(model.classifier[3].in_features,2)
-            return model
+        return model
     
-    ## @fn create_optimizer
-    #  @brief Create an optimizer
-    #  @param model Model
-    #  @param learning_rate Learning rate
-    #  @param weight_decay Weight decay
-    #  @return Optimizer
+
     def create_optimizer(self, model, learning_rate, weight_decay):
+        """Create an optimizer.
+        
+        Parameters:
+            model (function): CNN function.
+            learning_rate (float): Learning rate
+            weight_decay (float): Weight decay
+        
+        Returns:
+            (object): Optimizer object.
+        """
         update = []
         for name,param in model.named_parameters():
             if param.requires_grad == True:
@@ -107,25 +120,39 @@ class CNN:
         optimizerSGD = optim.SGD(update, lr=learning_rate, weight_decay=weight_decay)
         return optimizerSGD
 
-    ## @fn create_criterion
-    #  @brief Create a loss criterion
-    #  @return criterionCEL
+    
     def create_criterion(self):
+        """Create a loss criterion.
+        
+        Parameters:
+            None
+        
+        Returns:
+            (object): Cross entropy loss object.
+        """
         criterionCEL = nn.CrossEntropyLoss()
         return criterionCEL
 
-    ## @fn train_model
-    #  @brief Train a model
-    #  @param model Model
-    #  @param train_loader Training data loader
-    #  @param optimizer Optimizer
-    #  @param criterion Loss criterion
-    #  @param model_name Model name
-    #  @param num_epochs Number of epochs
-    #  @param learning_rate Learning rate
-    #  @param weight_decay Weight decay
-    #  @param replication Replication
-    def train_model(self, model, train_loader, optimizer, criterion, model_name, num_epochs, learning_rate, weight_decay, replication): 
+
+    def train_model(self, model, train_loader, optimizer, criterion, model_name, num_epochs, learning_rate, weight_decay, replication):
+        """Train a CNN model.
+
+        Train a CNN model and save it (PTH file) at 'models' directory.
+        
+        Parameters:
+            model (function): Model function.
+            train_loader (DataLoader): Training data loader
+            optimizer (object): Optimizer object.
+            criterion (object): CEL object.
+            model_name (str): Model name.
+            num_epochs (int): Number of epochs.
+            learning_rate (float): Learning rate.
+            weight_decay (float): Weight decay.
+            replication (int): Replication.
+        
+        Returns:
+            None
+        """
         model.to(self.device)
         min_loss = 100
         e_measures = []
@@ -136,14 +163,19 @@ class CNN:
                 nome_arquivo = f"./models/{model_name}_{num_epochs}_{learning_rate}_{weight_decay}_{replication}.pth"
                 torch.save(model.state_dict(), nome_arquivo)
 
-    ## @fn train_epoch
-    #  @brief Train an epoch
-    #  @param model Model
-    #  @param trainLoader Training data loader
-    #  @param optimizer Optimizer
-    #  @param criterion Loss criterion
-    #  @return Mean of losses
+    
     def train_epoch(self, model, trainLoader, optimizer, criterion):
+        """Train an epoch.
+        
+        Parameters:
+            model (function): Model function.
+            trainLoader (DataLoader): Training data loader.
+            optimizer (object): Optimizer object.
+            criterion (object): CEL object.
+        
+        Returns:
+            (float): Mean of losses.
+        """
         model.train()
         losses = []
         for X, y in trainLoader:
@@ -164,6 +196,15 @@ class CNN:
     #  @param loader Data loader
     #  @return Accuracy
     def evaluate_model(self, model, loader):
+        """Evaluate a model.
+        
+        Parameters:
+            model (function): Model function.
+            loader (DataLoader): Data loader
+        
+        Returns:
+            (float): Model (trained) accuracy.
+        """
         total = 0
         correct = 0
         for X, y in loader:

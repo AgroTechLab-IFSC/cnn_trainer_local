@@ -1,97 +1,91 @@
-## @file config.py
-#  @author Robson Costa (<mailto:robson.costa@ifsc.edu.br>)
-#  @brief Configuration class.
-#  @version 0.1.0
-#  @since 06/12/2024
-#  @date 09/12/2024
-#  @copyright Copyright &copy; since 2024 <a href="https://agrotechlab.lages.ifsc.edu.br" target="_blank">AgroTechLab</a>.\n
-#  ![LICENSE license](../figs/license.png)<br>
-#  Licensed under the CC BY-NC-SA (<i>Creative Commons Attribution-NonCommercial-ShareAlike</i>) 4.0 International Unported License (the <em>"License"</em>). You may not
-#  use this file except in compliance with the License. You may obtain a copy of the License <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode" target="_blank">here</a>.
-#  Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an <em>"as is" basis, 
-#  without warranties or  conditions of any kind</em>, either express or implied. See the License for the specific language governing permissions 
-#  and limitations under the License.
 import sys
 import logging
 from ruamel.yaml import YAML
 
-## Configuration class.
-#  @brief Get and validate configuration parameters from a configuration file based on YAML.
 class Config:
+    """
+    Get and validate configuration parameters from a configuration file based on YAML. These parameters will be saved as class attributes.
     
-    ## @fn __init__
-    #  @brief The Config class initializer.
-    #  @param _cfgFile Configuration file path.
-    def __init__(self, _cfgFile):
-        
-        ## Configuration file
-        self.configFile = _cfgFile
+    Parameters:
+        cfgFile (str): Configuration file path.
 
-        ## A tree with configuration project
-        self.tree = self._readConfigFile()
+    Attributes:
+        cpuUsed (int): Number of CPUs to be used.
+        trainPath (str): Directory path of train data.
+        testPath (str): Directory path of test data.
+        validationPath (str): Directory path of validation data.
+        modelsPath (str): Directory path of models that will be generated.
+        transformsHeight (int): Images transforms height.
+        transformsWidth (int): Images transforms width.
+        replications (int): Number of replications used at each trained model.
+        batchSize (int): Batch size.
+        modelNames (list): List of model names to be trained.
+        epochs (list): List of epochs to be trained.
+        learningRates (list): List of learning rates to be trained.
+        weightDecays (list): List of weight decays to be used at train.
+        tree (dict): Configuration file tree (from YAML object).
+    """
+    
+    def __init__(self, cfgFile):
+        """The Config class constructor."""
+       
+        self.tree = self.readConfigFile(cfgFile)
 
         # Getting CNN_LOCAL session
-        logging.info("Getting 'cnn_local' key information")
-        if "cnn_local" not in self.tree:
-            logging.error("Not 'cnn_local' key found on configuration file")
-            sys.exit("ERROR: Not 'cnn_local' key found on configuration file!!!")            
+        logging.info("Getting 'local' key information")
+        if "local" not in self.tree:
+            logging.error("Not 'local' key found on configuration file")
+            sys.exit("ERROR: Not 'local' key found on configuration file!!!")            
         
-        ## CPU used
-        self.cpuUsed = self.tree["cnn_local"]["cpu_used"]
+        self.cpuUsed = self.tree["local"]["cpu_used"]
         logging.info("Getting 'cpu_used': %d", self.cpuUsed)
 
-        ## Train path
-        self.trainPath = self.tree["cnn_local"]["train_path"]
+        self.trainPath = self.tree["local"]["train_path"]
         logging.info("Getting 'train_path': %s", self.trainPath)
         
-        ## Test path
-        self.testPath = self.tree["cnn_local"]["test_path"]
+        self.testPath = self.tree["local"]["test_path"]
         logging.info("Getting 'test_path': %s", self.testPath)
 
-        ## Validation path
-        self.validationPath = self.tree["cnn_local"]["val_path"]
+        self.validationPath = self.tree["local"]["val_path"]
         logging.info("Getting 'val_path': %s", self.validationPath)
 
-        ## Models path
-        self.modelsPath = self.tree["cnn_local"]["models_path"]
+        self.modelsPath = self.tree["local"]["models_path"]
         logging.info("Getting 'models_path': %s", self.modelsPath)
 
-        ## Transforms height
-        self.transformsHeight = self.tree["cnn_local"]["transforms_height"]
+        self.transformsHeight = self.tree["local"]["transforms_height"]
         logging.info("Getting 'transforms_height': %d", self.transformsHeight)
 
-        ## Transforms width
-        self.transformsWidth = self.tree["cnn_local"]["transforms_width"]
+        self.transformsWidth = self.tree["local"]["transforms_width"]
         logging.info("Getting 'transforms_width': %d", self.transformsWidth)
 
-        ## Replications
-        self.replications = self.tree["cnn_local"]["replications"]
+        self.replications = self.tree["local"]["replications"]
         logging.info("Getting 'replications': %d", self.replications)
 
-        ## Batch size
-        self.batchSize = self.tree["cnn_local"]["batch_size"]
+        self.batchSize = self.tree["local"]["batch_size"]
         logging.info("Getting 'batch_size': %d", self.batchSize)
 
-        ## Model names
-        self.modelNames = self.tree["cnn_local"]["model_names"]
+        self.modelNames = self.tree["local"]["model_names"]
         logging.info("Getting 'model_names': %s", self.modelNames)
 
-        ## Epochs
-        self.epochs = self.tree["cnn_local"]["epochs"]
+        self.epochs = self.tree["local"]["epochs"]
         logging.info("Getting 'epochs': %s", self.epochs)
 
-        ## Learning rates
-        self.learningRates = self.tree["cnn_local"]["learning_rates"]
+        self.learningRates = self.tree["local"]["learning_rates"]
         logging.info("Getting 'learning_rates': %s", self.learningRates)
 
-        ## Weight decays
-        self.weightDecays = self.tree["cnn_local"]["weight_decays"]
+        self.weightDecays = self.tree["local"]["weight_decays"]
         logging.info("Getting 'weight_decays': %s", self.weightDecays)
     
-
-    ## @fn _readConfigFile
-    #  @brief Read the configuration file.
-    def _readConfigFile(self):
+    def readConfigFile(self, configFile):
+        """
+        Read the configuration file.
+        
+        Parameters:
+            configFile (str): Configuration file path.
+        
+        Returns:
+            (dict): Configuration tree (from YAML object).
+        """
         try:
             with open(self.configFile, 'r') as _f:
                 yaml = YAML(typ='safe')
