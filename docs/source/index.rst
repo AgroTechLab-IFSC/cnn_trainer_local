@@ -6,8 +6,8 @@
 CNN Trainer (Local)
 ===================
 
-**CNN Trainer (Local)** is a AI tool developed by `AgroTechLab (*Technology Development Laboratory for Agribusiness*)
-<https://agrotechlab.lages.ifsc.edu.br/>`_ of `IFSC (*Federal Institute of Santa Catarina*) <https://www.ifsc.edu.br>`_.
+**CNN Trainer (Local)** is a AI tool developed by `AgroTechLab <https://agrotechlab.lages.ifsc.edu.br/>`_
+(*Technology Development Laboratory for Agribusiness*) of `IFSC <https://www.ifsc.edu.br>`_ (*Federal Institute of Santa Catarina*).
 
 It is a CNN (*Convolutional Neural Network*) trainer tool developed to be used on local machines. It is designed to be easy to use 
 and to provide a simple interface for training CNNs on your own data. It supports single-core and multi-core architectures.

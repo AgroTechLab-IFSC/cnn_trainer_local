@@ -4,14 +4,22 @@ Authors and License
 Authors
 -------
 
-**pyIoTDevSim** was developed by Robson Costa <robson.costa@ifsc.edu.br>, researcher/embedded systems engineer of 
-`AgroTechLab <https://agrotechlab.lages.ifsc.edu.br>`_ (*Technology Development Laboratory for Agribusiness*) and professor at 
-`IFSC <https://www.ifsc.edu.br>`_ (*Federal Institute of Santa Catarina*).
+**CNN Trainer (Local)** was developed by:
+
+   - `Robson Costa <https://www.linkedin.com/in/robson-costa-br/>`_
+      
+      - Researcher/embedded systems engineer at `AgroTechLab <https://agrotechlab.lages.ifsc.edu.br>`_;
+      - Professor at `IFSC <https://www.ifsc.edu.br>`_;
+   
+   - `Wilson Castello Branco Neto <https://www.linkedin.com/in/wilson-castello-branco-neto-2b4626341/>`_
+   
+      - Researcher/AI engineer at `AgroTechLab <https://agrotechlab.lages.ifsc.edu.br>`_;
+      - Professor at `IFSC <https://www.ifsc.edu.br>`_;
 
 License
 -------
 
-**pyIoTDevSim** is licensed under the `Creative Commons BY-SA 4.0 License <https://creativecommons.org/licenses/by-sa/4.0/>`_.
+**CNN Trainer (Local)** is licensed under the `Creative Commons BY-SA 4.0 License <https://creativecommons.org/licenses/by-sa/4.0/>`_.
 
 
 .. toctree::
