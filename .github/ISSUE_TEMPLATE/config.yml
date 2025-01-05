@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Project Documentation
+    url: https://agrotechlab-ifsc.github.io/cnn_trainer_local
+    about: See the CNN Trainer (Local) documentation.

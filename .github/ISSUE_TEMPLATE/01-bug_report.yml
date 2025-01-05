@@ -1,0 +1,67 @@
+name: 🐛 Bug report
+description: Create a bug report to help us improve
+labels:
+  - bug
+assignees:
+  - 'robson-costa'
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for reporting an issue.
+
+        This issue tracker is for BUGS only.
+
+        Please fill in as much of the following form as you're able.
+  - type: input
+    attributes:
+      label: Version
+      description: |
+        Please verify that you are reproducing the issue in a [currently-supported version](https://github.com/AgroTechLab-IFSC/cnn_trainer_local) of CNN Trainer (Local).
+  - type: textarea
+    attributes:
+      label: Platform
+      render: text
+      description: |
+        UNIX: output of `uname -a`
+        Windows: output of `"$([Environment]::OSVersion.VersionString) $(('x86', 'x64')[[Environment]::Is64BitOperatingSystem])"` in PowerShell console
+  - type: input
+    attributes:
+      label: Subsystem
+      description: If known, please specify affected core module name
+  - type: textarea
+    attributes:
+      label: Configuration file.
+      description: >
+        Put the content of your configuration file.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Logging file.
+      description: >
+        Put the content of your logging file.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: What steps will reproduce the bug?
+      description: >
+        Enter details about your bug.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: How often does it reproduce? Is there a required condition?
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: What is the expected behavior? Why is that the expected behavior?
+      description: If possible please provide textual output instead of screenshots.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Additional information
+      description: Tell us anything else you think we should know.
