@@ -13,7 +13,7 @@ sys.path.insert(0, os.path.abspath('../../'))
 
 project = 'CNN Trainer (Local)'
 copyright = 'since 2024 - AgroTechLab'
-author = 'Robson Costa'
+author = 'Robson Costa and Wilson Castello Branco Neto'
 release = '0.1.0'
 
 # -- General configuration ---------------------------------------------------
