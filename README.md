@@ -1,6 +1,4 @@
-<a href="https://trackgit.com">
-<img src="https://us-central1-trackgit-analytics.cloudfunctions.net/token/ping/m5jn32o6z9wty3591rm5" alt="trackgit-views" />
-</a>
+<a href="https://trackgit.com"><img src="https://us-central1-trackgit-analytics.cloudfunctions.net/token/ping/m5jn32o6z9wty3591rm5" alt="trackgit-views" /></a>
 ![GitHub Release](https://img.shields.io/github/v/release/agrotechlab-ifsc/cnn_trainer_local)
 ![GitHub top language](https://img.shields.io/github/languages/top/agrotechlab-ifsc/cnn_trainer_local)
 ![GitHub commit activity](https://img.shields.io/github/commit-activity/t/agrotechlab-ifsc/cnn_trainer_local)
