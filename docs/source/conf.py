@@ -12,9 +12,9 @@ sys.path.insert(0, os.path.abspath('../../'))
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = 'CNN Trainer (Local)'
-copyright = '2024, AgroTechLab'
-author = 'AgroTechLab'
-release = 'v0.1.0'
+copyright = 'since 2024 - AgroTechLab'
+author = 'Robson Costa'
+release = '0.1.0'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration

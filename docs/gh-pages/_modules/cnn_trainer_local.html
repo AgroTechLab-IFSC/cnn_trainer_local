@@ -1,0 +1,251 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>cnn_trainer_local &mdash; CNN Trainer (Local) 0.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=4ae1632d" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=01f34227"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            CNN Trainer (Local)
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../modules.html">cnn_trainer_local</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">CNN Trainer (Local)</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Module code</a></li>
+      <li class="breadcrumb-item active">cnn_trainer_local</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for cnn_trainer_local</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">multiprocessing</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">from</span> <span class="nn">concurrent.futures</span> <span class="kn">import</span> <span class="n">ProcessPoolExecutor</span><span class="p">,</span> <span class="n">as_completed</span>
+<span class="kn">import</span> <span class="nn">config</span> <span class="k">as</span> <span class="nn">config</span>
+<span class="kn">from</span> <span class="nn">cnn</span> <span class="kn">import</span> <span class="n">CNN</span>
+<span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">from</span> <span class="nn">torchvision</span> <span class="kn">import</span> <span class="n">datasets</span>
+<span class="kn">from</span> <span class="nn">torchvision.transforms</span> <span class="kn">import</span> <span class="n">v2</span>
+
+<span class="c1">## Configuration file name</span>
+<span class="n">CONFIG_FILE</span> <span class="o">=</span> <span class="s1">&#39;cnn_trainer.yml&#39;</span>
+<span class="n">LOG_FILE</span> <span class="o">=</span> <span class="s1">&#39;cnn_trainer.log&#39;</span>
+
+<div class="viewcode-block" id="define_transforms">
+<a class="viewcode-back" href="../cnn_trainer_local.html#cnn_trainer_local.define_transforms">[docs]</a>
+<span class="k">def</span> <span class="nf">define_transforms</span><span class="p">(</span><span class="n">height</span><span class="p">,</span> <span class="n">width</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Define transforms for the images.</span>
+
+<span class="sd">    Parameters:</span>
+<span class="sd">        height (int): Images height.</span>
+<span class="sd">        width (int): Images width.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        (dict): Data transforms.</span>
+<span class="sd">    &quot;&quot;&quot;</span>   
+    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Defining transforms&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">Defining transforms...&quot;</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">data_transforms</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;train&#39;</span> <span class="p">:</span> <span class="n">v2</span><span class="o">.</span><span class="n">Compose</span><span class="p">([</span>
+                    <span class="n">v2</span><span class="o">.</span><span class="n">Resize</span><span class="p">((</span><span class="n">height</span><span class="p">,</span> <span class="n">width</span><span class="p">)),</span>
+                    <span class="n">v2</span><span class="o">.</span><span class="n">Compose</span><span class="p">([</span><span class="n">v2</span><span class="o">.</span><span class="n">ToImage</span><span class="p">(),</span> <span class="n">v2</span><span class="o">.</span><span class="n">ToDtype</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="kc">True</span><span class="p">)]),</span>
+                    <span class="n">v2</span><span class="o">.</span><span class="n">Normalize</span><span class="p">(</span><span class="n">mean</span><span class="o">=</span><span class="p">[</span><span class="mf">0.485</span><span class="p">,</span> <span class="mf">0.456</span><span class="p">,</span> <span class="mf">0.406</span><span class="p">],</span> <span class="n">std</span><span class="o">=</span><span class="p">[</span><span class="mf">0.229</span><span class="p">,</span> <span class="mf">0.224</span><span class="p">,</span> <span class="mf">0.225</span><span class="p">]),</span>
+        <span class="p">]),</span>
+        <span class="s1">&#39;test&#39;</span>  <span class="p">:</span> <span class="n">v2</span><span class="o">.</span><span class="n">Compose</span><span class="p">([</span>
+                    <span class="n">v2</span><span class="o">.</span><span class="n">Resize</span><span class="p">((</span><span class="n">height</span><span class="p">,</span> <span class="n">width</span><span class="p">)),</span>
+                    <span class="n">v2</span><span class="o">.</span><span class="n">Compose</span><span class="p">([</span><span class="n">v2</span><span class="o">.</span><span class="n">ToImage</span><span class="p">(),</span> <span class="n">v2</span><span class="o">.</span><span class="n">ToDtype</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="kc">True</span><span class="p">)]),</span>
+                    <span class="n">v2</span><span class="o">.</span><span class="n">Normalize</span><span class="p">(</span><span class="n">mean</span><span class="o">=</span><span class="p">[</span><span class="mf">0.485</span><span class="p">,</span> <span class="mf">0.456</span><span class="p">,</span> <span class="mf">0.406</span><span class="p">],</span> <span class="n">std</span><span class="o">=</span><span class="p">[</span><span class="mf">0.229</span><span class="p">,</span> <span class="mf">0.224</span><span class="p">,</span> <span class="mf">0.225</span><span class="p">]),</span>
+        <span class="p">]),</span>
+        <span class="s1">&#39;validation&#39;</span> <span class="p">:</span> <span class="n">v2</span><span class="o">.</span><span class="n">Compose</span><span class="p">([</span>
+                    <span class="n">v2</span><span class="o">.</span><span class="n">Resize</span><span class="p">((</span><span class="n">height</span><span class="p">,</span> <span class="n">width</span><span class="p">)),</span>
+                    <span class="n">v2</span><span class="o">.</span><span class="n">Compose</span><span class="p">([</span><span class="n">v2</span><span class="o">.</span><span class="n">ToImage</span><span class="p">(),</span> <span class="n">v2</span><span class="o">.</span><span class="n">ToDtype</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="kc">True</span><span class="p">)]),</span>
+                    <span class="n">v2</span><span class="o">.</span><span class="n">Normalize</span><span class="p">(</span><span class="n">mean</span><span class="o">=</span><span class="p">[</span><span class="mf">0.485</span><span class="p">,</span> <span class="mf">0.456</span><span class="p">,</span> <span class="mf">0.406</span><span class="p">],</span> <span class="n">std</span><span class="o">=</span><span class="p">[</span><span class="mf">0.229</span><span class="p">,</span> <span class="mf">0.224</span><span class="p">,</span> <span class="mf">0.225</span><span class="p">]),</span>
+        <span class="p">]),</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="n">data_transforms</span></div>
+
+
+<div class="viewcode-block" id="read_images">
+<a class="viewcode-back" href="../cnn_trainer_local.html#cnn_trainer_local.read_images">[docs]</a>
+<span class="k">def</span> <span class="nf">read_images</span><span class="p">(</span><span class="n">data_transforms</span><span class="p">,</span> <span class="n">train_path</span><span class="p">,</span> <span class="n">val_path</span><span class="p">,</span> <span class="n">test_path</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Read images (train, validation and test) from their respective directories.</span>
+
+<span class="sd">    Parameters:</span>
+<span class="sd">        data_transforms (dict): Tranforms to be applied to the images.</span>
+<span class="sd">        train_path (str): Path to train images directory.</span>
+<span class="sd">        val_path (str): Path to validation images directory.</span>
+<span class="sd">        test_path (str): Path to test images directory.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        (dict): A dict mapping keys to the:</span>
+<span class="sd">                * &#39;train_data&#39;: (datasets.ImageFolder) Train data.</span>
+<span class="sd">                * &#39;validation_data&#39;: (datasets.ImageFolder) Validation data.</span>
+<span class="sd">                * &#39;test_data&#39;: (datasets.ImageFolder) Test data.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Reading images&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">Reading images...&quot;</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="c1">## Train data</span>
+    <span class="n">train_data</span> <span class="o">=</span> <span class="n">datasets</span><span class="o">.</span><span class="n">ImageFolder</span><span class="p">(</span><span class="n">train_path</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="n">data_transforms</span><span class="p">[</span><span class="s1">&#39;train&#39;</span><span class="p">])</span>
+
+    <span class="c1">## Validation data</span>
+    <span class="n">validation_data</span> <span class="o">=</span> <span class="n">datasets</span><span class="o">.</span><span class="n">ImageFolder</span><span class="p">(</span><span class="n">val_path</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="n">data_transforms</span><span class="p">[</span><span class="s1">&#39;validation&#39;</span><span class="p">])</span>
+
+    <span class="c1">## Test data</span>
+    <span class="n">test_data</span> <span class="o">=</span> <span class="n">datasets</span><span class="o">.</span><span class="n">ImageFolder</span><span class="p">(</span><span class="n">test_path</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="n">data_transforms</span><span class="p">[</span><span class="s1">&#39;test&#39;</span><span class="p">])</span>
+    
+    <span class="k">return</span> <span class="n">train_data</span><span class="p">,</span> <span class="n">validation_data</span><span class="p">,</span> <span class="n">test_data</span></div>
+
+
+<div class="viewcode-block" id="main">
+<a class="viewcode-back" href="../cnn_trainer_local.html#cnn_trainer_local.main">[docs]</a>
+<span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Main function.&quot;&quot;&quot;</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Starting CNN Trainer (Local)&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Starting CNN Trainer (Local)&quot;</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="c1"># Check CPU count</span>
+    <span class="n">cpu_count</span> <span class="o">=</span> <span class="n">multiprocessing</span><span class="o">.</span><span class="n">cpu_count</span><span class="p">()</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;CPU count: </span><span class="si">{</span><span class="n">cpu_count</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">CPU count: </span><span class="si">{</span><span class="n">cpu_count</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="c1"># Read configuration file</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Reading configuration file </span><span class="si">{</span><span class="n">CONFIG_FILE</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">Reading configuration file... &quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">cfgObj</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">Config</span><span class="p">(</span><span class="n">cfgFile</span><span class="o">=</span><span class="n">CONFIG_FILE</span><span class="p">)</span>    
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;[OK]&quot;</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="c1"># Validate CPU used</span>
+    <span class="k">if</span> <span class="n">cfgObj</span><span class="o">.</span><span class="n">cpuUsed</span> <span class="o">&gt;</span> <span class="n">cpu_count</span><span class="p">:</span>
+        <span class="n">cfgObj</span><span class="o">.</span><span class="n">cpuUsed</span> <span class="o">=</span> <span class="n">cpu_count</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Parameter &#39;cpu_used&#39; is greater than available CPUs. Using all </span><span class="si">{</span><span class="n">cpu_count</span><span class="si">}</span><span class="s2"> available CPUs&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\t\t</span><span class="s2">Parameter &#39;cpu_used&#39; is greater than available CPUs. Using all </span><span class="si">{</span><span class="n">cpu_count</span><span class="si">}</span><span class="s2"> available CPUs...&quot;</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="c1"># Read data and create CNN object</span>
+    <span class="n">data_transforms</span> <span class="o">=</span> <span class="n">define_transforms</span><span class="p">(</span><span class="n">cfgObj</span><span class="o">.</span><span class="n">transformsHeight</span><span class="p">,</span> <span class="n">cfgObj</span><span class="o">.</span><span class="n">transformsWidth</span><span class="p">)</span>
+    <span class="n">train_data</span><span class="p">,</span> <span class="n">validation_data</span><span class="p">,</span> <span class="n">test_data</span> <span class="o">=</span> <span class="n">read_images</span><span class="p">(</span><span class="n">data_transforms</span><span class="p">,</span> <span class="n">cfgObj</span><span class="o">.</span><span class="n">trainPath</span><span class="p">,</span> <span class="n">cfgObj</span><span class="o">.</span><span class="n">validationPath</span><span class="p">,</span> <span class="n">cfgObj</span><span class="o">.</span><span class="n">testPath</span><span class="p">)</span>
+    <span class="n">cnn</span> <span class="o">=</span> <span class="n">CNN</span><span class="p">(</span><span class="n">train_data</span><span class="p">,</span> <span class="n">validation_data</span><span class="p">,</span> <span class="n">test_data</span><span class="p">,</span> <span class="n">cfgObj</span><span class="o">.</span><span class="n">batchSize</span><span class="p">)</span>
+    
+    <span class="c1"># Create an executor to control the number of subprocesses</span>
+    <span class="n">process_queue</span> <span class="o">=</span> <span class="n">ProcessPoolExecutor</span><span class="p">(</span><span class="n">max_workers</span> <span class="o">=</span> <span class="n">cfgObj</span><span class="o">.</span><span class="n">cpuUsed</span><span class="p">)</span>
+
+    <span class="c1"># Create subprocesses</span>
+    <span class="n">proc_num</span> <span class="o">=</span> <span class="n">cfgObj</span><span class="o">.</span><span class="n">modelNames</span><span class="o">.</span><span class="fm">__len__</span><span class="p">()</span> <span class="o">*</span> <span class="n">cfgObj</span><span class="o">.</span><span class="n">epochs</span><span class="o">.</span><span class="fm">__len__</span><span class="p">()</span> <span class="o">*</span> <span class="n">cfgObj</span><span class="o">.</span><span class="n">learningRates</span><span class="o">.</span><span class="fm">__len__</span><span class="p">()</span> <span class="o">*</span> <span class="n">cfgObj</span><span class="o">.</span><span class="n">weightDecays</span><span class="o">.</span><span class="fm">__len__</span><span class="p">()</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Creating </span><span class="si">{</span><span class="n">proc_num</span><span class="si">}</span><span class="s2"> subprocesses that will generate </span><span class="si">{</span><span class="p">(</span><span class="n">proc_num</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">cfgObj</span><span class="o">.</span><span class="n">replications</span><span class="p">)</span><span class="si">}</span><span class="s2"> models&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">Creating </span><span class="si">{</span><span class="n">proc_num</span><span class="si">}</span><span class="s2"> subprocesses that will generate </span><span class="si">{</span><span class="p">(</span><span class="n">proc_num</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">cfgObj</span><span class="o">.</span><span class="n">replications</span><span class="p">)</span><span class="si">}</span><span class="s2"> models&quot;</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">generalBegin</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+    <span class="n">futures</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">model_name</span> <span class="ow">in</span> <span class="n">cfgObj</span><span class="o">.</span><span class="n">modelNames</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">epoch</span> <span class="ow">in</span> <span class="n">cfgObj</span><span class="o">.</span><span class="n">epochs</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">learning_rate</span> <span class="ow">in</span> <span class="n">cfgObj</span><span class="o">.</span><span class="n">learningRates</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">weight_decay</span> <span class="ow">in</span> <span class="n">cfgObj</span><span class="o">.</span><span class="n">weightDecays</span><span class="p">:</span>
+                    <span class="n">futures</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">process_queue</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span><span class="n">cnn</span><span class="o">.</span><span class="n">create_and_train_cnn</span><span class="p">,</span> <span class="n">model_name</span><span class="p">,</span> <span class="n">epoch</span><span class="p">,</span> <span class="n">learning_rate</span><span class="p">,</span> <span class="n">weight_decay</span><span class="p">,</span> <span class="n">cfgObj</span><span class="o">.</span><span class="n">replications</span><span class="p">))</span>
+
+    <span class="c1"># Wait for results</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Waiting results of </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">futures</span><span class="p">)</span><span class="si">}</span><span class="s2"> subprocesses&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">Waiting results of </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">futures</span><span class="p">)</span><span class="si">}</span><span class="s2"> subprocesses...&quot;</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">future</span> <span class="ow">in</span> <span class="n">as_completed</span><span class="p">(</span><span class="n">futures</span><span class="p">):</span>
+        <span class="n">result_name</span><span class="p">,</span> <span class="n">acc_avg</span><span class="p">,</span> <span class="n">iter_acc_max</span><span class="p">,</span> <span class="n">duration</span> <span class="o">=</span> <span class="n">future</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">result_name</span><span class="si">}</span><span class="s2"> (Avg. accuracy: </span><span class="si">{</span><span class="n">acc_avg</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2"> - Best replication: </span><span class="si">{</span><span class="n">iter_acc_max</span><span class="si">}</span><span class="s2"> - Duration: </span><span class="si">{</span><span class="nb">round</span><span class="p">(</span><span class="n">duration</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">)</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\t\t</span><span class="si">{</span><span class="n">result_name</span><span class="si">}</span><span class="s2"> (Avg. accuracy: </span><span class="si">{</span><span class="n">acc_avg</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2"> - Best replication: </span><span class="si">{</span><span class="n">iter_acc_max</span><span class="si">}</span><span class="s2"> - Duration: </span><span class="si">{</span><span class="nb">round</span><span class="p">(</span><span class="n">duration</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">)</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    
+    <span class="c1"># Compute total time</span>
+    <span class="n">generalEnd</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+    <span class="n">totalDuration</span> <span class="o">=</span> <span class="nb">round</span><span class="p">((</span><span class="n">generalEnd</span> <span class="o">-</span> <span class="n">generalBegin</span><span class="p">),</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Total duration: </span><span class="si">{</span><span class="n">totalDuration</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> seconds&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">Total duration: </span><span class="si">{</span><span class="n">totalDuration</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> seconds&quot;</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+    
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Main function (entry point).&quot;&quot;&quot;</span>
+    <span class="c1"># Setup logging</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="n">LOG_FILE</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%(asctime)s</span><span class="s1"> </span><span class="si">%(levelname)s</span><span class="s1"> - </span><span class="si">%(message)s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;utf-8&#39;</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+    
+    <span class="c1"># Call main function</span>
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright since 2024 - AgroTechLab.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
